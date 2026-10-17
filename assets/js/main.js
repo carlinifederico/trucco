@@ -21,7 +21,16 @@
     ? `<img class="logo" src="${url(p.logo)}" alt="${esc(p.title)}">`
     : p.mark ? `<span class="logo logo--svg">${p.mark}</span><span class="sr">${esc(p.title)}</span>` : esc(p.title));
 
-  const ARROW = '<svg class="arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 10L10 2M4 2h6v6" fill="none" stroke="currentColor" stroke-width="1"/></svg>';
+  const svgI = (d) => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const ICON = {
+    mail: svgI('<rect x="3" y="5.5" width="18" height="13"/><path d="M3.5 6l8.5 7 8.5-7"/>'),
+    cal: svgI('<rect x="3.5" y="5" width="17" height="15"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/>'),
+    pin: svgI('<path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0113 0c0 4.8-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>'),
+    user: svgI('<circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5"/>'),
+    at: svgI('<circle cx="12" cy="12" r="3.6"/><path d="M15.6 12v1.6a2.4 2.4 0 004.8 0V12a8.4 8.4 0 10-3.3 6.7"/>'),
+    text: svgI('<path d="M4 6h16M4 10.5h16M4 15h10M4 19.5h6"/>'),
+  };
+  const ARROW ='<svg class="arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 10L10 2M4 2h6v6" fill="none" stroke="currentColor" stroke-width="1"/></svg>';
 
   /* ── header + footer ─────────────────────────────────────── */
   const nav = [['work', 'Work', ''], ['about', 'About', 'about/'], ['contact', 'Contact', 'contact/']];
@@ -237,12 +246,29 @@
         <h1 class="sr">Contact</h1>
         <p class="label" data-reveal>Contact</p>
         <a class="cta" href="mailto:${D.email}" data-reveal>Get in touch ${ARROW}</a>
-        <div class="contact__rows" data-reveal>
-          <div><p class="label">Email</p><a href="mailto:${D.email}">${D.email}</a></div>
-          <div><p class="label">Meeting</p><a href="${D.calendly}" target="_blank" rel="noopener">Book a meeting ${ARROW}</a></div>
-          <div><p class="label">Based in</p><p>${D.city} — working worldwide</p></div>
+        <div class="contact__grid">
+          <div class="contact__rows" data-reveal>
+            <div>${ICON.mail}<p class="label">Email</p><a href="mailto:${D.email}">${D.email}</a></div>
+            <div>${ICON.cal}<p class="label">Meeting</p><a href="${D.calendly}" target="_blank" rel="noopener">Book a meeting ${ARROW}</a></div>
+            <div>${ICON.pin}<p class="label">Based in</p><p>${D.city} — working worldwide</p></div>
+          </div>
+          <form class="form" data-reveal>
+            <label><span class="label">${ICON.user} Name</span><input name="name" required autocomplete="name"></label>
+            <label><span class="label">${ICON.at} Email</span><input name="email" type="email" required autocomplete="email"></label>
+            <label><span class="label">${ICON.text} Message</span><textarea name="message" rows="4" required></textarea></label>
+            <button type="submit">Send ${ARROW}</button>
+          </form>
         </div>
       </section>`));
+
+    // sin servidor: el formulario arma el mail en el cliente de correo del visitante
+    document.querySelector('.form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const f = new FormData(e.target);
+      const subject = `TRUCCO — ${f.get('name')}`;
+      const text = `${f.get('message')}\n\n${f.get('name')}\n${f.get('email')}`;
+      location.href = `mailto:${D.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(text)}`;
+    });
   }
 
   /* ── reveal on scroll ────────────────────────────────────── */
