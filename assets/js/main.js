@@ -16,6 +16,10 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const h = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content; };
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  // logo del proyecto (imagen o SVG inline) con el nombre para lectores de pantalla
+  const mark = (p) => (p.logo
+    ? `<img class="logo" src="${url(p.logo)}" alt="${esc(p.title)}">`
+    : p.mark ? `<span class="logo logo--svg">${p.mark}</span><span class="sr">${esc(p.title)}</span>` : esc(p.title));
 
   const ARROW = '<svg class="arrow" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 10L10 2M4 2h6v6" fill="none" stroke="currentColor" stroke-width="1"/></svg>';
 
@@ -98,21 +102,30 @@
             <span class="card__end"><small>Full project · ${p.duration}</small>Watch ${esc(p.title)} ${ARROW}</span>
           </a>`;
       return `
-        <section class="chapter${ph ? ' chapter--ph' : ''}" data-scene="chapter">
+        <section class="chapter${ph ? ' chapter--ph' : ''}" data-scene="chapter" id="p-${p.slug}">
           <div class="chapter__stage">
             <header class="chapter__head">
               <p class="chapter__n">${num(p.i)}<span>/${total}</span></p>
-              <h2 class="chapter__title">${esc(p.title)}</h2>
+              <h2 class="chapter__title">${mark(p)}</h2>
               <p class="chapter__kind">${esc(p.kind)} · ${ph ? 'add info here' : p.year}</p>
               <a class="chapter__cta" href="${projectUrl(p.slug)}">${ph ? 'project page' : 'watch the full project here'} ${ARROW}</a>
             </header>
             <div class="track">${cards}${end}</div>
-            <div class="chapter__progress"><i></i></div>
+            <div class="chapter__foot">
+              <div class="chapter__progress"><i></i></div>
+              <a class="chapter__skip" href="#" data-skip>${p.i < D.projects.length - 1 ? 'Next project <span>↓</span>' : 'Back to top <span>↑</span>'}</a>
+            </div>
           </div>
         </section>`;
     }).join('');
 
-    main.append(h(`<h1 class="sr">TRUCCO — Work</h1>${hero}${chapters}`));
+    // índice fijo: salta de proyecto sin recorrer la tira
+    const index = `
+      <nav class="index" aria-label="Projects">
+        ${D.projects.map((p, i) => `<a href="#p-${p.slug}" data-jump="${i}"><span>${num(i)}</span><b>${esc(p.title)}</b></a>`).join('')}
+      </nav>`;
+
+    main.append(h(`<h1 class="sr">TRUCCO — Work</h1>${hero}${chapters}${index}`));
   }
 
   if (page === 'project') {
@@ -132,7 +145,7 @@
       <article class="proj">
         <header class="proj__head" data-reveal>
           <p class="proj__n">${num(p.i)}/${total}</p>
-          <h1 class="proj__title">${esc(p.title)}</h1>
+          <h1 class="proj__title">${mark(p)}</h1>
           <p class="proj__sub">${esc(p.kind)} · ${p.year}</p>
           <ul class="tags">${p.tags.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
           <dl class="credits">${p.credits.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
@@ -171,7 +184,7 @@
       <article class="proj proj--ph">
         <header class="proj__head" data-reveal>
           <p class="proj__n">${num(p.i)}/${total}</p>
-          <h1 class="proj__title">${esc(p.title)}</h1>
+          <h1 class="proj__title">${mark(p)}</h1>
           <p class="proj__sub">${esc(p.kind)} · add info here</p>
           <dl class="credits">${['Client', 'Creative direction', 'Executive production', 'Production'].map((k) => `<div><dt>${k}</dt><dd class="bar"></dd></div>`).join('')}</dl>
         </header>
@@ -270,7 +283,18 @@
         s._dist = wide.matches ? Math.max(0, last.offsetLeft + last.offsetWidth + pad - innerWidth) : 0;
         s.style.height = wide.matches ? `${s._dist + innerHeight}px` : '';
       });
+      // costuras entre proyectos: del final de una tira al comienzo de la siguiente.
+      // Ahí no se scrollea libre: el primer gesto hace snap (ver "scroll suave").
+      const y = (el) => el.getBoundingClientRect().top + scrollY;
+      let prevEnd = 0;
+      window.__seams = !wide.matches ? [] : chs.map((c) => {
+        const seam = [prevEnd, y(c)];
+        prevEnd = y(c) + c._dist;
+        return seam;
+      });
     };
+    const chs = scenes.filter((s) => s.dataset.scene === 'chapter');
+    const index = document.querySelector('.index');
 
     const update = () => {
       const vw = innerWidth, vh = innerHeight;
@@ -298,7 +322,27 @@
           m.style.transform = `translate3d(${off * -7}%,0,0) scale(1.16)`;
         });
       });
+
+      // índice: marca el proyecto en pantalla
+      let act = -1;
+      chs.forEach((c, i) => { const r = c.getBoundingClientRect(); if (r.top <= vh * 0.5 && r.bottom > vh * 0.5) act = i; });
+      index.classList.toggle('show', act >= 0);
+      index.querySelectorAll('a').forEach((a, i) => a.classList.toggle('on', i === act));
     };
+
+    // saltar de proyecto: índice y "Next project"
+    document.addEventListener('click', (e) => {
+      const j = e.target.closest('[data-jump]');
+      const k = e.target.closest('[data-skip]');
+      if (!j && !k) return;
+      e.preventDefault();
+      let target = 0;
+      if (j) target = chs[+j.dataset.jump];
+      else { const i = chs.indexOf(k.closest('.chapter')); target = chs[i + 1] || 0; }
+      const top = target ? target.getBoundingClientRect().top + scrollY : 0;
+      if (window.__lenis) window.__glide(top, 1.4);
+      else scrollTo({ top, behavior: 'smooth' });
+    });
 
     let ticking = false;
     const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(() => { update(); ticking = false; }); } };
@@ -317,6 +361,20 @@
       const lenis = new window.Lenis({ lerp: 0.085, wheelMultiplier: 0.9 });
       const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
       requestAnimationFrame(raf);
+      window.__lenis = lenis;
+
+      // snap entre proyectos, con el mismo ease que el site de OHHH (easeInOutCubic)
+      const inOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+      let gliding = false;
+      window.__glide = (top, duration = 1.1) => {
+        gliding = true;
+        lenis.scrollTo(top, { duration, easing: inOut, lock: true, force: true, onComplete: () => { gliding = false; } });
+      };
+      lenis.on('scroll', ({ scroll, direction }) => {
+        if (gliding || !direction) return;
+        const seam = (window.__seams || []).find(([a, b]) => scroll > a + 2 && scroll < b - 2);
+        if (seam) window.__glide(direction > 0 ? seam[1] : seam[0]);
+      });
       document.querySelectorAll('.lightbox, .menu').forEach((el) => el.setAttribute('data-lenis-prevent', ''));
     };
     document.head.append(s);

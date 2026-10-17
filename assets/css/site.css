@@ -595,3 +595,52 @@ main { min-height: 70vh; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   [data-reveal] { opacity: 1; transform: none; }
 }
+
+/* ── logos de proyecto ────────────────────────────────────── */
+.logo { display: block; width: auto; color: var(--ink); }
+.logo--svg svg { display: block; height: 100%; width: auto; overflow: visible; }
+.chapter__title .logo { height: clamp(90px, 19vh, 210px); max-width: 60vw; object-fit: contain; object-position: left bottom; }
+.chapter__title .logo--svg { height: clamp(60px, 12vh, 130px); }
+.chapter--ph .chapter__title .logo { color: #55524d; }
+.proj__title .logo { height: clamp(90px, 20vh, 220px); max-width: 80vw; object-fit: contain; object-position: left bottom; margin-left: .06em; }
+.proj__title .logo--svg { height: clamp(60px, 12vh, 130px); }
+.proj--ph .proj__title .logo { color: #55524d; }
+
+/* ── pie del capítulo: progreso + saltar ──────────────────── */
+.chapter__foot { display: flex; align-items: center; gap: 24px; margin: 44px var(--pad) 0; }
+.chapter__foot .chapter__progress { flex: 1; margin: 0; }
+.chapter__skip {
+  font: 400 11px var(--mono); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--mute); transition: color .3s; white-space: nowrap;
+}
+.chapter__skip span { display: inline-block; margin-left: 6px; color: var(--red); transition: transform .4s var(--ease); }
+.chapter__skip:hover { color: var(--ink); }
+.chapter__skip:hover span { transform: translateY(3px); }
+
+/* ── índice fijo de proyectos ─────────────────────────────── */
+.index {
+  position: fixed; right: var(--pad); top: calc(var(--hdr) / 2); z-index: 55;
+  transform: translate(0, calc(-50% - 8px));
+  display: flex; gap: 16px; align-items: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .5s var(--ease), transform .5s var(--ease);
+}
+.index.show { opacity: 1; pointer-events: auto; transform: translate(0, -50%); }
+.index a {
+  display: flex; align-items: center; gap: 6px;
+  font: 400 10px var(--mono); letter-spacing: .1em; text-transform: uppercase;
+  color: var(--mute); transition: color .3s;
+}
+.index b { font-weight: 400; max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0; transition: max-width .5s var(--ease), opacity .4s; }
+.index a.on b, .index a:hover b { max-width: 16ch; opacity: 1; }
+.index a::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: transparent; transition: background .3s; }
+.index a.on { color: var(--ink); }
+.index a.on::before { background: var(--red); }
+.index a:hover { color: var(--ink); }
+@media (max-width: 860px) {
+  .index { display: none; }
+  .chapter__foot { margin-top: 0; }
+  .chapter__foot .chapter__progress { display: none; }
+  .chapter__title .logo { height: 84px; max-width: 86vw; }
+  .chapter__title .logo--svg { height: 52px; }
+}

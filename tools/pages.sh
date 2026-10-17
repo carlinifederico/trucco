@@ -25,9 +25,9 @@ page() { # file depth(prefix) page slug title desc
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400&family=Geist+Mono:wght@300;400&family=Geist:wght@300;400;800&display=swap">
-<link rel="stylesheet" href="${r}assets/css/site.css">
-<script src="${r}assets/js/projects.js" defer></script>
-<script src="${r}assets/js/main.js" defer></script>
+<link rel="stylesheet" href="${r}assets/css/site.css?v=${V}">
+<script src="${r}assets/js/projects.js?v=${V}" defer></script>
+<script src="${r}assets/js/main.js?v=${V}" defer></script>
 </head>
 <body data-page="${pg}"${slug:+ data-slug=\"$slug\"}>
 <main></main>
@@ -37,6 +37,7 @@ page() { # file depth(prefix) page slug title desc
 HTML
 }
 
+V=$(date +%s)  # versión: evita que el navegador use CSS/JS viejos
 D="TRUCCO — a creative and collaborative group focused on branding &amp; audiovisual."
 page index.html          ""       work    ""        "TRUCCO — Creative Group" "$D"
 page about/index.html    "../"    about   ""        "About — TRUCCO" "$D"

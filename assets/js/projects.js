@@ -32,6 +32,7 @@ window.TRUCCO = {
     {
       slug: 'paraiso',
       title: 'Paraíso',
+      logo: 'assets/logos/paraiso.png',
       kind: 'Music video',
       year: '2026',
       tags: ['Music', 'Festival', 'AI film'],
@@ -54,6 +55,7 @@ window.TRUCCO = {
     {
       slug: 'wine',
       title: 'El Quebrado',
+      logo: 'assets/logos/wine.png',
       kind: 'Wine brand film',
       year: '2026',
       tags: ['Wine', 'Branding', 'AI film'],
@@ -73,10 +75,14 @@ window.TRUCCO = {
       duration: '01:07',
       stills: 12,
     },
-    { slug: 'sport',        title: 'Sport',          kind: 'Opening ceremony', placeholder: true },
-    { slug: 'fashion-week', title: 'Fashion Week',   kind: 'Fashion',          placeholder: true },
-    { slug: 'architecture', title: 'Architecture',   kind: 'Space',            placeholder: true },
-    { slug: 'audio',        title: 'High-End Audio', kind: 'Product',          placeholder: true },
+    { slug: 'sport',        title: 'Sport',          kind: 'Opening ceremony', placeholder: true,
+      mark: '<svg viewBox="0 0 720 200" fill="currentColor" aria-hidden="true"><circle cx="100" cy="100" r="80" fill="none" stroke="currentColor" stroke-width="5"/><line x1="100" y1="20" x2="100" y2="180" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="100" cy="100" r="24" fill="none" stroke="currentColor" stroke-width="5"/><text x="214" y="126" font-family="Geist" font-weight="800" font-size="104" letter-spacing="-4">ARENA</text><text x="220" y="168" font-family="Geist Mono" font-size="19" letter-spacing="7">OPENING CEREMONY</text></svg>' },
+    { slug: 'fashion-week', title: 'Fashion Week',   kind: 'Fashion',          placeholder: true,
+      mark: '<svg viewBox="0 0 720 200" fill="currentColor" aria-hidden="true"><rect x="22" y="22" width="156" height="156" fill="none" stroke="currentColor" stroke-width="5"/><text x="100" y="128" text-anchor="middle" font-family="Cinzel" font-size="78">FW</text><text x="212" y="126" font-family="Geist" font-weight="300" font-size="100" letter-spacing="4">SEMANA</text><text x="218" y="168" font-family="Geist Mono" font-size="19" letter-spacing="7">FASHION WEEK</text></svg>' },
+    { slug: 'architecture', title: 'Architecture',   kind: 'Space',            placeholder: true,
+      mark: '<svg viewBox="0 0 720 200" fill="currentColor" aria-hidden="true"><rect x="22" y="22" width="118" height="118" fill="none" stroke="currentColor" stroke-width="5"/><rect x="62" y="62" width="118" height="118"/><text x="214" y="126" font-family="Geist" font-weight="300" font-size="100" letter-spacing="22">VACÍO</text><text x="220" y="168" font-family="Geist Mono" font-size="19" letter-spacing="7">ARCHITECTURE · SPACE</text></svg>' },
+    { slug: 'audio',        title: 'High-End Audio', kind: 'Product',          placeholder: true,
+      mark: '<svg viewBox="0 0 720 200" fill="currentColor" aria-hidden="true"><circle cx="100" cy="100" r="80" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="100" cy="100" r="54" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="100" cy="100" r="28" fill="none" stroke="currentColor" stroke-width="5"/><circle cx="100" cy="100" r="8"/><text x="214" y="126" font-family="Geist Mono" font-weight="400" font-size="100" letter-spacing="6">ÉTER</text><text x="220" y="168" font-family="Geist Mono" font-size="19" letter-spacing="7">HIGH-END AUDIO</text></svg>' },
   ],
 
   /* Composición de la home.
