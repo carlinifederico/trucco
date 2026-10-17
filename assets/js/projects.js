@@ -32,7 +32,7 @@ window.TRUCCO = {
     {
       slug: 'paraiso',
       title: 'Paraíso',
-      logo: 'assets/logos/paraiso.png',
+      logo: 'assets/logos/paraiso.png?v=2',
       kind: 'Music video',
       year: '2026',
       tags: ['Music', 'Festival', 'AI film'],
