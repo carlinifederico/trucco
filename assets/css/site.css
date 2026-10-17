@@ -602,7 +602,7 @@ main { min-height: 70vh; }
 .chapter__title .logo { height: clamp(90px, 19vh, 210px); max-width: 60vw; object-fit: contain; object-position: left bottom; }
 .chapter__title .logo--svg { height: clamp(60px, 12vh, 130px); }
 .chapter--ph .chapter__title .logo { color: #55524d; }
-.proj__title .logo { height: clamp(90px, 20vh, 220px); max-width: 80vw; object-fit: contain; object-position: left bottom; margin-left: .06em; }
+.proj__title .logo { height: clamp(70px, 16vh, 190px); max-width: 100%; object-fit: contain; object-position: left bottom; margin-left: .06em; }
 .proj__title .logo--svg { height: clamp(60px, 12vh, 130px); }
 .proj--ph .proj__title .logo { color: #55524d; }
 
