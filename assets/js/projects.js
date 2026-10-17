@@ -92,8 +92,8 @@ window.TRUCCO = {
   landing: {
     hero: { p: 'paraiso', f: 1 },
     chapters: [
-      { p: 'paraiso', frags: [4, 2, 5, 8, 6, 7, 3] },
-      { p: 'wine', frags: [1, 2, 3, 4, 5, 6] },
+      { p: 'paraiso', frags: [4, 2, 5, 6, 8] },
+      { p: 'wine', frags: [1, 2, 3, 4, 6] },
     ],
   },
 };
