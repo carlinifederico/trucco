@@ -27,7 +27,6 @@
         ${nav.map(([k, label, p]) => `<a href="${url(p)}"${k === current ? ' aria-current="page"' : ''}>${label}</a>`).join('')}
       </nav>
       <a class="hdr__mark wordmark" href="${url('')}" aria-label="TRUCCO — home">TRUCCO</a>
-      <p class="hdr__meta"><span>${D.city}</span> <span class="clock" aria-hidden="true">--:--:--</span></p>
       <button class="hdr__burger" aria-label="Menu" aria-expanded="false"><i></i><i></i></button>
     </header>
     <div class="menu" hidden>
@@ -42,11 +41,6 @@
       <a href="mailto:${D.email}">${D.email}</a>
       <span>© ${new Date().getFullYear()}</span>
     </footer>`));
-
-  const clock = document.querySelector('.clock');
-  const fmt = new Intl.DateTimeFormat('en-GB', { timeZone: D.timezone, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-  const tick = () => { clock.textContent = fmt.format(new Date()); };
-  tick(); setInterval(tick, 1000);
 
   const burger = document.querySelector('.hdr__burger');
   const menu = document.querySelector('.menu');
@@ -63,35 +57,66 @@
   const main = document.querySelector('main');
 
   if (page === 'work') {
-    const rows = D.landing.map((row) => `<div class="row">${row.map(block).join('')}</div>`).join('');
-    main.append(h(`<h1 class="sr">TRUCCO — Work</h1><section class="wall">${rows}</section>`));
-  }
+    const L = D.landing;
+    const hp = bySlug[L.hero.p];
+    const hsrc = media(hp.slug, `frag-${L.hero.f}`);
+    const hero = `
+      <section class="hero" data-scene="hero">
+        <div class="hero__stage">
+          <p class="hero__word hero__word--l">Branding</p>
+          <a class="hero__win" href="${projectUrl(hp.slug)}" data-cursor="View">
+            <video muted loop playsinline preload="auto" autoplay poster="${hsrc}.jpg" data-src="${hsrc}.mp4"></video>
+          </a>
+          <p class="hero__word hero__word--r">Audiovisual</p>
+          <p class="hero__foot"><span>Creative group</span><span>Selected work ${new Date().getFullYear()}</span><span class="hero__scroll">Scroll</span></p>
+        </div>
+      </section>`;
 
-  function place(b) {
-    return `style="--c:${b.c};--w:${b.w};--y:${b.y || 0}"`;
-  }
-
-  function block(b) {
-    if (b.ph) {
-      const p = bySlug[b.ph];
+    const chapters = L.chapters.map(({ p: slug, frags }) => {
+      const p = bySlug[slug];
+      const cards = frags.map((f, k) => {
+        const src = media(p.slug, `frag-${f}`);
+        return `
+          <a class="card" href="${projectUrl(p.slug)}" data-cursor="View">
+            <span class="card__media"><video muted loop playsinline preload="none" poster="${src}.jpg" data-src="${src}.mp4"></video></span>
+            <span class="card__n">${String(k + 1).padStart(2, '0')}</span>
+          </a>`;
+      }).join('');
       return `
-        <a class="frag frag--ph" href="${projectUrl(p.slug)}" ${place(b)} data-reveal>
-          <span class="frag__box"><span class="ph__label">${esc(p.kind)}<br>add info here</span></span>
-          <span class="frag__meta"><span>${num(p.i)}/${total}</span><span>${esc(p.title)}</span><span>—</span></span>
-        </a>`;
-    }
-    const p = bySlug[b.p];
-    const f = p.frags[b.f - 1];
-    const src = media(p.slug, `frag-${b.f}`);
-    return `
-      <div class="frag" ${place(b)} data-reveal>
-        <a class="frag__box" href="${projectUrl(p.slug)}" data-cursor="View">
-          <video muted loop playsinline preload="none" poster="${src}.jpg" data-src="${src}.mp4"></video>
-          <span class="frag__tag">${esc(p.title)}</span>
-        </a>
-        <span class="frag__meta"><span>${num(p.i)}/${total}</span><span>${esc(p.title)}</span><span>${f.t}</span></span>
-        ${b.cap ? `<a class="frag__cap" href="${projectUrl(p.slug)}">watch the full project here ${ARROW}</a>` : ''}
-      </div>`;
+        <section class="chapter" data-scene="chapter">
+          <div class="chapter__stage">
+            <header class="chapter__head">
+              <p class="chapter__n">${num(p.i)}<span>/${total}</span></p>
+              <h2 class="chapter__title">${esc(p.title)}</h2>
+              <p class="chapter__kind">${esc(p.kind)} · ${p.year}</p>
+              <a class="chapter__cta" href="${projectUrl(p.slug)}">watch the full project here ${ARROW}</a>
+            </header>
+            <div class="track">
+              ${cards}
+              <a class="card card--end" href="${projectUrl(p.slug)}" data-cursor="Watch">
+                <span class="card__media"><img src="${media(p.slug, 'full.jpg')}" alt="" loading="lazy"></span>
+                <span class="card__end"><small>Full project · ${p.duration}</small>Watch ${esc(p.title)} ${ARROW}</span>
+              </a>
+            </div>
+            <div class="chapter__progress"><i></i></div>
+          </div>
+        </section>`;
+    }).join('');
+
+    const soon = D.projects.filter((p) => p.placeholder);
+    const next = `
+      <section class="soon">
+        <header class="soon__head" data-reveal><p class="label">In progress</p><p class="label">${String(soon.length).padStart(2, '0')} projects</p></header>
+        <div class="soon__grid">
+          ${soon.map((p, k) => `
+            <a class="ph-card" href="${projectUrl(p.slug)}" data-reveal style="--d:${k}">
+              <span class="ph-card__box"><span class="ph__label">add info here</span></span>
+              <span class="ph-card__meta"><span>${num(p.i)}</span><b>${esc(p.title)}</b><span>${esc(p.kind)}</span></span>
+            </a>`).join('')}
+        </div>
+      </section>`;
+
+    main.append(h(`<h1 class="sr">TRUCCO — Work</h1>${hero}${chapters}${next}`));
   }
 
   if (page === 'project') {
@@ -179,15 +204,23 @@
     main.append(h(`
       <section class="about">
         <h1 class="sr">About</h1>
-        <p class="statement" data-reveal>We are a creative and collaborative group focused on <em>branding</em> &amp; <em>audiovisual</em>.</p>
+        <p class="statement">
+          <span class="line" data-reveal><i>We are a</i> <b>Creative</b></span>
+          <span class="line" data-reveal><i>and</i> <b>Collaborative</b></span>
+          <span class="line" data-reveal><b>Group</b> <i>focused on</i></span>
+          <span class="line" data-reveal><b class="hollow">Branding</b> <i>&amp;</i></span>
+          <span class="line" data-reveal><b class="hollow">Audiovisual</b></span>
+        </p>
         <div class="people">
-          ${D.people.map((x, i) => `
-            <div class="person" data-reveal>
-              <p class="label">${num(i)}</p>
-              <h2 class="person__name">${esc(x.name)}</h2>
+          ${D.people.map((x, i) => {
+            const [first, ...rest] = x.name.split(' ');
+            return `
+            <div class="person person--${i}" data-reveal>
+              <h2 class="person__name" data-name="${esc(first)}&#10;${esc(rest.join(' '))}">${esc(first)}<br>${esc(rest.join(' '))}</h2>
               <p class="person__role">${esc(x.role)}</p>
-              <a class="person__link" href="${x.link.href}" target="_blank" rel="noopener">${esc(x.link.label)} ${ARROW}</a>
-            </div>`).join('')}
+              <a class="person__link" href="${x.link.href}" target="_blank" rel="noopener"><span>${esc(x.link.label)}</span> ${ARROW}</a>
+            </div>`;
+          }).join('')}
         </div>
       </section>`));
   }
@@ -222,6 +255,81 @@
     });
   }, { rootMargin: '200px 0px' });
   document.querySelectorAll('video[data-src]').forEach((v) => vio.observe(v));
+
+  /* ── escenas de scroll (home) ────────────────────────────── */
+  const scenes = [...document.querySelectorAll('[data-scene]')];
+  if (scenes.length) {
+    const wide = matchMedia('(min-width: 861px)');
+    const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+    const ease = (t) => 1 - Math.pow(1 - t, 3);
+    const lerp = (a, b, t) => a + (b - a) * t;
+
+    const layout = () => {
+      scenes.forEach((s) => {
+        if (s.dataset.scene !== 'chapter') return;
+        const track = s.querySelector('.track');
+        const last = track.lastElementChild;
+        track.style.transform = '';
+        const pad = parseFloat(getComputedStyle(track).paddingLeft);
+        s._dist = wide.matches ? Math.max(0, last.offsetLeft + last.offsetWidth + pad - innerWidth) : 0;
+        s.style.height = wide.matches ? `${s._dist + innerHeight}px` : '';
+      });
+    };
+
+    const update = () => {
+      const vw = innerWidth, vh = innerHeight;
+      scenes.forEach((s) => {
+        const r = s.getBoundingClientRect();
+        if (r.bottom < -vh || r.top > vh * 2) return;
+
+        if (s.dataset.scene === 'hero') {
+          const p = clamp(-r.top / (s.offsetHeight - vh));
+          const e = ease(clamp(p / 0.75));
+          const w0 = Math.min(vw * (wide.matches ? 0.36 : 0.72), vh * 0.8 * 16 / 9);
+          const w = lerp(w0, vw, e);
+          const hh = lerp(w0 * 9 / 16, vh, e);
+          s.style.setProperty('--w', `${w}px`);
+          s.style.setProperty('--h', `${hh}px`);
+          s.style.setProperty('--scale', lerp(1.08, 1, e));
+          s.style.setProperty('--fade', 1 - clamp(p * 2.4));
+          return;
+        }
+
+        // capítulo: la tira horizontal avanza con el scroll vertical
+        const p = s._dist ? clamp(-r.top / s._dist) : 0;
+        const track = s.querySelector('.track');
+        if (wide.matches) track.style.transform = `translate3d(${-p * s._dist}px,0,0)`;
+        s.querySelector('.chapter__progress i').style.transform = `scaleX(${p})`;
+        s.style.setProperty('--head', `${-p * 2}vw`);
+        track.querySelectorAll('.card__media > *').forEach((m) => {
+          const b = m.parentNode.getBoundingClientRect();
+          const off = clamp((b.left + b.width / 2 - vw / 2) / vw, -1, 1);
+          m.style.transform = `translate3d(${off * -7}%,0,0) scale(1.16)`;
+        });
+      });
+    };
+
+    let ticking = false;
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(() => { update(); ticking = false; }); } };
+    addEventListener('scroll', onScroll, { passive: true });
+    addEventListener('resize', () => { layout(); update(); });
+    wide.addEventListener('change', () => { layout(); update(); });
+    layout(); update();
+    addEventListener('load', () => { layout(); update(); });
+  }
+
+  /* ── scroll suave ────────────────────────────────────────── */
+  if (!reduced) {
+    const s = document.createElement('script');
+    s.src = 'https://unpkg.com/lenis@1.1.13/dist/lenis.min.js';
+    s.onload = () => {
+      const lenis = new window.Lenis({ lerp: 0.085, wheelMultiplier: 0.9 });
+      const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
+      requestAnimationFrame(raf);
+      document.querySelectorAll('.lightbox, .menu').forEach((el) => el.setAttribute('data-lenis-prevent', ''));
+    };
+    document.head.append(s);
+  }
 
   /* ── cursor ──────────────────────────────────────────────── */
   if (matchMedia('(hover: hover) and (pointer: fine)').matches) {

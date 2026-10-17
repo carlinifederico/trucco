@@ -46,6 +46,8 @@ frag "$WINE" wine 5 48.87 3.75
 frag "$WINE" wine 6 56.5  4.0
 
 frag "$PARAISO" paraiso 1 1.33  2.55
+# el de la entrada va a pantalla completa: más resolución
+ffmpeg -v error -y -ss 1.33 -i "$PARAISO" -t 2.55 -an -c:v libx264 -crf 21 -preset slow -pix_fmt yuv420p -movflags +faststart "$OUT/paraiso/frag-1.mp4"
 frag "$PARAISO" paraiso 2 5.04  2.1
 frag "$PARAISO" paraiso 3 12.04 2.5
 frag "$PARAISO" paraiso 4 17.12 3.42

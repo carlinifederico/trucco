@@ -24,7 +24,7 @@ page() { # file depth(prefix) page slug title desc
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400&family=Geist+Mono:wght@300;400&family=Geist:wght@300;400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400&family=Geist+Mono:wght@300;400&family=Geist:wght@300;400;800&display=swap">
 <link rel="stylesheet" href="${r}assets/css/site.css">
 <script src="${r}assets/js/projects.js" defer></script>
 <script src="${r}assets/js/main.js" defer></script>
