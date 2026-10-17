@@ -4,6 +4,7 @@
   const D = window.TRUCCO;
   const body = document.body;
   const page = body.dataset.page;
+  body.classList.add(`page-${page}`);
   // raíz del site, a partir de donde vive este script (assets/js/main.js)
   const ROOT = new URL('../../', document.currentScript.src).href;
   const url = (p) => ROOT + p;
@@ -62,61 +63,56 @@
     const hsrc = media(hp.slug, `frag-${L.hero.f}`);
     const hero = `
       <section class="hero" data-scene="hero">
-        <div class="hero__stage">
-          <p class="hero__word hero__word--l">Branding</p>
-          <a class="hero__win" href="${projectUrl(hp.slug)}" data-cursor="View">
-            <video muted loop playsinline preload="auto" autoplay poster="${hsrc}.jpg" data-src="${hsrc}.mp4"></video>
-          </a>
-          <p class="hero__word hero__word--r">Audiovisual</p>
-          <p class="hero__foot"><span>Creative group</span><span>Selected work ${new Date().getFullYear()}</span><span class="hero__scroll">Scroll</span></p>
-        </div>
+        <a class="hero__media" href="${projectUrl(hp.slug)}" data-cursor="View">
+          <video muted loop playsinline preload="auto" autoplay poster="${hsrc}.jpg" data-src="${hsrc}.mp4"></video>
+        </a>
+        <p class="hero__foot"><span>${num(hp.i)}/${total} — ${esc(hp.title)}</span><span>Selected work ${new Date().getFullYear()}</span><span class="hero__scroll">Scroll</span></p>
       </section>`;
 
-    const chapters = L.chapters.map(({ p: slug, frags }) => {
+    // todos los proyectos, en orden; los placeholder pasan con cuadros grises
+    const chapterOf = Object.fromEntries(L.chapters.map((c) => [c.p, c.frags]));
+    const chapters = D.projects.map(({ slug }) => {
       const p = bySlug[slug];
-      const cards = frags.map((f, k) => {
-        const src = media(p.slug, `frag-${f}`);
-        return `
+      const ph = !!p.placeholder;
+      const cards = ph
+        ? Array.from({ length: 4 }, (_, k) => `
+          <a class="card card--ph" href="${projectUrl(p.slug)}">
+            <span class="card__media"><span class="ph__label">add info here</span></span>
+            <span class="card__n">${String(k + 1).padStart(2, '0')}</span>
+          </a>`).join('')
+        : (chapterOf[p.slug] || []).map((f, k) => {
+          const src = media(p.slug, `frag-${f}`);
+          return `
           <a class="card" href="${projectUrl(p.slug)}" data-cursor="View">
             <span class="card__media"><video muted loop playsinline preload="none" poster="${src}.jpg" data-src="${src}.mp4"></video></span>
             <span class="card__n">${String(k + 1).padStart(2, '0')}</span>
           </a>`;
-      }).join('');
+        }).join('');
+      const end = ph
+        ? `<a class="card card--end card--ph" href="${projectUrl(p.slug)}">
+            <span class="card__media"></span>
+            <span class="card__end"><small>Full project</small>add info here ${ARROW}</span>
+          </a>`
+        : `<a class="card card--end" href="${projectUrl(p.slug)}" data-cursor="Watch">
+            <span class="card__media"><img src="${media(p.slug, 'full.jpg')}" alt="" loading="lazy"></span>
+            <span class="card__end"><small>Full project · ${p.duration}</small>Watch ${esc(p.title)} ${ARROW}</span>
+          </a>`;
       return `
-        <section class="chapter" data-scene="chapter">
+        <section class="chapter${ph ? ' chapter--ph' : ''}" data-scene="chapter">
           <div class="chapter__stage">
             <header class="chapter__head">
               <p class="chapter__n">${num(p.i)}<span>/${total}</span></p>
               <h2 class="chapter__title">${esc(p.title)}</h2>
-              <p class="chapter__kind">${esc(p.kind)} · ${p.year}</p>
-              <a class="chapter__cta" href="${projectUrl(p.slug)}">watch the full project here ${ARROW}</a>
+              <p class="chapter__kind">${esc(p.kind)} · ${ph ? 'add info here' : p.year}</p>
+              <a class="chapter__cta" href="${projectUrl(p.slug)}">${ph ? 'project page' : 'watch the full project here'} ${ARROW}</a>
             </header>
-            <div class="track">
-              ${cards}
-              <a class="card card--end" href="${projectUrl(p.slug)}" data-cursor="Watch">
-                <span class="card__media"><img src="${media(p.slug, 'full.jpg')}" alt="" loading="lazy"></span>
-                <span class="card__end"><small>Full project · ${p.duration}</small>Watch ${esc(p.title)} ${ARROW}</span>
-              </a>
-            </div>
+            <div class="track">${cards}${end}</div>
             <div class="chapter__progress"><i></i></div>
           </div>
         </section>`;
     }).join('');
 
-    const soon = D.projects.filter((p) => p.placeholder);
-    const next = `
-      <section class="soon">
-        <header class="soon__head" data-reveal><p class="label">In progress</p><p class="label">${String(soon.length).padStart(2, '0')} projects</p></header>
-        <div class="soon__grid">
-          ${soon.map((p, k) => `
-            <a class="ph-card" href="${projectUrl(p.slug)}" data-reveal style="--d:${k}">
-              <span class="ph-card__box"><span class="ph__label">add info here</span></span>
-              <span class="ph-card__meta"><span>${num(p.i)}</span><b>${esc(p.title)}</b><span>${esc(p.kind)}</span></span>
-            </a>`).join('')}
-        </div>
-      </section>`;
-
-    main.append(h(`<h1 class="sr">TRUCCO — Work</h1>${hero}${chapters}${next}`));
+    main.append(h(`<h1 class="sr">TRUCCO — Work</h1>${hero}${chapters}`));
   }
 
   if (page === 'project') {
@@ -283,15 +279,10 @@
         if (r.bottom < -vh || r.top > vh * 2) return;
 
         if (s.dataset.scene === 'hero') {
-          const p = clamp(-r.top / (s.offsetHeight - vh));
-          const e = ease(clamp(p / 0.75));
-          const w0 = Math.min(vw * (wide.matches ? 0.36 : 0.72), vh * 0.8 * 16 / 9);
-          const w = lerp(w0, vw, e);
-          const hh = lerp(w0 * 9 / 16, vh, e);
-          s.style.setProperty('--w', `${w}px`);
-          s.style.setProperty('--h', `${hh}px`);
-          s.style.setProperty('--scale', lerp(1.08, 1, e));
-          s.style.setProperty('--fade', 1 - clamp(p * 2.4));
+          const p = clamp(-r.top / vh);
+          s.style.setProperty('--hy', `${p * 30}vh`);
+          s.style.setProperty('--hs', 1 + p * 0.08);
+          s.style.setProperty('--fade', 1 - p * 0.85);
           return;
         }
 
