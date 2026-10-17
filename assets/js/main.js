@@ -70,7 +70,7 @@
         <a class="hero__media" href="${projectUrl(hp.slug)}" data-cursor="View">
           <video muted loop playsinline preload="auto" autoplay poster="${hsrc}.jpg" data-src="${hsrc}.mp4"></video>
         </a>
-        <p class="hero__foot"><span>${num(hp.i)}/${total} — ${esc(hp.title)}</span><span>Selected work ${new Date().getFullYear()}</span><span class="hero__scroll">Scroll</span></p>
+        <p class="hero__foot"><span>${esc(hp.title)}</span><span>Selected work ${new Date().getFullYear()}</span><span class="hero__scroll">Scroll</span></p>
       </section>`;
 
     // todos los proyectos, en orden; los placeholder pasan con cuadros grises
@@ -82,14 +82,12 @@
         ? Array.from({ length: 4 }, (_, k) => `
           <a class="card card--ph" href="${projectUrl(p.slug)}">
             <span class="card__media"><span class="ph__label">add info here</span></span>
-            <span class="card__n">${String(k + 1).padStart(2, '0')}</span>
           </a>`).join('')
         : (chapterOf[p.slug] || []).map((f, k) => {
           const src = media(p.slug, `frag-${f}`);
           return `
           <a class="card" href="${projectUrl(p.slug)}" data-cursor="View">
             <span class="card__media"><video muted loop playsinline preload="none" poster="${src}.jpg" data-src="${src}.mp4"></video></span>
-            <span class="card__n">${String(k + 1).padStart(2, '0')}</span>
           </a>`;
         }).join('');
       const end = ph
@@ -103,14 +101,13 @@
           </a>`;
       return `
         <section class="chapter${ph ? ' chapter--ph' : ''}" data-scene="chapter" id="p-${p.slug}">
-          <div class="chapter__stage">
-            <header class="chapter__head">
-              <p class="chapter__n">${num(p.i)}<span>/${total}</span></p>
+          <div class="chapter__stage" data-cursor="Next project ↕">
+            <header class="chapter__head" data-cursor="">
               <h2 class="chapter__title">${mark(p)}</h2>
               <p class="chapter__kind">${esc(p.kind)} · ${ph ? 'add info here' : p.year}</p>
               <a class="chapter__cta" href="${projectUrl(p.slug)}">${ph ? 'project page' : 'watch the full project here'} ${ARROW}</a>
             </header>
-            <div class="track">${cards}${end}</div>
+            <div class="track" data-cursor="">${cards}${end}</div>
             <div class="chapter__foot">
               <div class="chapter__progress"><i></i></div>
               <a class="chapter__skip" href="#" data-skip>${p.i < D.projects.length - 1 ? 'Next project <span>↓</span>' : 'Back to top <span>↑</span>'}</a>
@@ -122,7 +119,7 @@
     // índice fijo: salta de proyecto sin recorrer la tira
     const index = `
       <nav class="index" aria-label="Projects">
-        ${D.projects.map((p, i) => `<a href="#p-${p.slug}" data-jump="${i}"><span>${num(i)}</span><b>${esc(p.title)}</b></a>`).join('')}
+        ${D.projects.map((p, i) => `<a href="#p-${p.slug}" data-jump="${i}" aria-label="${esc(p.title)}"><b>${esc(p.title)}</b></a>`).join('')}
       </nav>`;
 
     main.append(h(`<h1 class="sr">TRUCCO — Work</h1>${hero}${chapters}${index}`));
@@ -152,8 +149,8 @@
         </header>
 
         <div class="player" data-reveal>
-          <video preload="metadata" playsinline poster="${media(p.slug, 'full.jpg')}" src="${media(p.slug, 'full.mp4')}"></video>
-          <button class="player__big" aria-label="Play film"><span>Play film</span><small>${p.duration}</small></button>
+          <video preload="auto" playsinline muted loop autoplay poster="${media(p.slug, 'full.jpg')}" src="${media(p.slug, 'full.mp4')}"></video>
+          <button class="player__big" aria-label="Sound on"><span>Sound on</span><small>${p.duration}</small></button>
           <div class="player__bar">
             <button class="player__play">Play</button>
             <span class="player__time">00:00 / ${p.duration}</span>
@@ -330,6 +327,21 @@
       index.querySelectorAll('a').forEach((a, i) => a.classList.toggle('on', i === act));
     };
 
+    // fuera de la tira y del logo, la rueda cambia de proyecto (con snap)
+    const outside = (el) => wide.matches && el.closest('.chapter__stage') && !el.closest('.track, .chapter__head, .chapter__foot');
+    document.addEventListener('pointerover', (e) => {
+      chs.forEach((c) => c.classList.toggle('skip-zone', c.contains(e.target) && !!outside(e.target)));
+    });
+    addEventListener('wheel', (e) => {
+      if (!window.__glide || !outside(e.target)) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (window.__gliding() || Math.abs(e.deltaY) < 4) return;
+      const i = chs.indexOf(e.target.closest('.chapter'));
+      const to = chs[i + (e.deltaY > 0 ? 1 : -1)];
+      window.__glide(to ? to.getBoundingClientRect().top + scrollY : (e.deltaY > 0 ? document.documentElement.scrollHeight : 0), 1.1);
+    }, { capture: true, passive: false });
+
     // saltar de proyecto: índice y "Next project"
     document.addEventListener('click', (e) => {
       const j = e.target.closest('[data-jump]');
@@ -366,6 +378,7 @@
       // snap entre proyectos, con el mismo ease que el site de OHHH (easeInOutCubic)
       const inOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
       let gliding = false;
+      window.__gliding = () => gliding;
       window.__glide = (top, duration = 1.1) => {
         gliding = true;
         lenis.scrollTo(top, { duration, easing: inOut, lock: true, force: true, onComplete: () => { gliding = false; } });
@@ -395,9 +408,9 @@
     })();
     document.addEventListener('pointerover', (e) => {
       const t = e.target.closest('[data-cursor]');
-      cur.classList.toggle('cursor--on', !!t);
-      if (t) cur.querySelector('span').textContent = t.dataset.cursor;
-      cur.classList.toggle('cursor--link', !t && !!e.target.closest('a, button'));
+      cur.classList.toggle('cursor--on', !!(t && t.dataset.cursor));
+      if (t && t.dataset.cursor) cur.querySelector('span').textContent = t.dataset.cursor;
+      cur.classList.toggle('cursor--link', !(t && t.dataset.cursor) && !!e.target.closest('a, button'));
     });
   }
 
@@ -411,8 +424,9 @@
     const track = player.querySelector('.player__track');
     const fill = track.querySelector('i');
     const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-    const toggle = () => (v.paused ? v.play() : v.pause());
-    player.querySelector('.player__big').addEventListener('click', () => { v.muted = false; v.play(); });
+    const toggle = () => { player.classList.toggle('held', !v.paused); return v.paused ? v.play() : v.pause(); };
+    const big = player.querySelector('.player__big');
+    big.addEventListener('click', () => { v.muted = false; v.currentTime = 0; v.play(); });
     v.addEventListener('click', toggle);
     play.addEventListener('click', toggle);
     v.addEventListener('play', () => { player.classList.add('playing', 'started'); play.textContent = 'Pause'; });
@@ -431,7 +445,11 @@
       (player.requestFullscreen || player.webkitRequestFullscreen || (() => v.webkitEnterFullscreen?.())).call(player);
     });
     // si sale de pantalla, pausa
-    new IntersectionObserver(([e]) => { if (!e.isIntersecting && !v.paused) v.pause(); }, { threshold: 0.15 }).observe(player);
+    new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { if (v.paused && !player.classList.contains('held')) v.play().catch(() => {}); }
+      else if (!v.paused) v.pause();
+    }, { threshold: 0.15 }).observe(player);
+    v.addEventListener('volumechange', () => player.classList.toggle('unmuted', !v.muted));
   }
 
   /* ── lightbox ────────────────────────────────────────────── */
